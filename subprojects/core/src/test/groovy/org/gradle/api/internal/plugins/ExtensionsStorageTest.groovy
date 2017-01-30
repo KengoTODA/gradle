@@ -18,6 +18,7 @@ package org.gradle.api.internal.plugins
 
 import org.gradle.api.Action
 import org.gradle.api.InvalidUserDataException
+import org.gradle.api.reflect.TypeOf
 import org.gradle.api.UnknownDomainObjectException
 import org.gradle.api.plugins.DeferredConfigurable
 import spock.lang.Specification
@@ -208,22 +209,36 @@ class ExtensionsStorageTest extends Specification {
         t.message == "Cannot configure the 'ext' extension after it has been accessed."
     }
 
-    public static interface TestExtension {
-        void call(def value);
+    static interface TestExtension {
+        void call(value);
     }
 
     @DeferredConfigurable
-    public static class TestDeferredExtension {
+    static class TestDeferredExtension {
         TestExtension delegate
 
-        void call(def value) {
+        void call(value) {
             delegate.call(value)
         }
     }
 
-    def "get schema"() {
+    def "favor exact same type over assignable"() {
+        given:
+        storage.add Integer, 'int', 23
+        storage.add Number, 'num', 42
+        storage.add new TypeOf<List<String>>() {}, 'stringList', ['string']
+
         expect:
-        storage.getSchema() == [list: List, set: Set]
+        storage.findByType(Number) == 42
+        storage.findByType(new TypeOf<List<String>>() {}) == ['string']
+    }
+
+    def "get schema"() {
+        given:
+        storage.add new TypeOf<List<String>>() {}, 'stringList', ['string']
+
+        expect:
+        storage.getSchema() == [list: List, set: Set, stringList: new TypeOf<List<String>>() {}]
     }
 
     def "only considers public type when addressing extensions by type"() {

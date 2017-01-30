@@ -21,6 +21,7 @@ import org.gradle.api.Incubating;
 import org.gradle.api.UnknownDomainObjectException;
 import org.gradle.internal.HasInternalProtocol;
 
+import java.lang.reflect.Type;
 import java.util.Map;
 
 /**
@@ -38,7 +39,6 @@ public interface ExtensionContainer {
      *
      * The extension will be exposed as {@code publicType}.
      *
-     * @param <T> the extension public type
      * @param publicType The extension public type
      * @param name The name for the extension
      * @param extension Any object implementing {@code publicType}
@@ -46,7 +46,7 @@ public interface ExtensionContainer {
      * @since 4.0
      */
     @Incubating
-    <T> void add(Class<T> publicType, String name, T extension);
+    void add(Type publicType, String name, Object extension);
 
     /**
      * Adds a new extension to this container.
@@ -77,11 +77,11 @@ public interface ExtensionContainer {
      * @param constructionArguments The arguments to be used to construct the extension instance
      * @return The created instance
      * @throws IllegalArgumentException When an extension with the given name already exists.
-     * @see #add(Class, String, Object)
+     * @see #add(Type, String, Object)
      * @since 4.0
      */
     @Incubating
-    <T> T create(Class<T> publicType, String name, Class<? extends T> instanceType, Object... constructionArguments);
+    <T> T create(Type publicType, String name, Class<T> instanceType, Object... constructionArguments);
 
     /**
      * Creates and adds a new extension to this container.
@@ -106,7 +106,7 @@ public interface ExtensionContainer {
      * @since 4.0
      */
     @Incubating
-    Map<String, Class<?>> getSchema();
+    Map<String, Type> getSchema();
 
     /**
      * Looks for the extension of a given type (useful to avoid casting). If none found it will throw an exception.
@@ -117,6 +117,8 @@ public interface ExtensionContainer {
      */
     <T> T getByType(Class<T> type) throws UnknownDomainObjectException;
 
+    <T> T getByType(Type type) throws UnknownDomainObjectException;
+
     /**
      * Looks for the extension of a given type (useful to avoid casting). If none found null is returned.
      *
@@ -124,6 +126,8 @@ public interface ExtensionContainer {
      * @return extension or null
      */
     <T> T findByType(Class<T> type);
+
+    <T> T findByType(Type type);
 
     /**
      * Looks for the extension of a given name. If none found it will throw an exception.

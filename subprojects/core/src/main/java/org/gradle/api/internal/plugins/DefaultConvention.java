@@ -28,6 +28,7 @@ import org.gradle.internal.metaobject.InvokeMethodResult;
 import org.gradle.internal.metaobject.SetPropertyResult;
 import org.gradle.internal.reflect.Instantiator;
 
+import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -82,7 +83,7 @@ public class DefaultConvention implements Convention, ExtensionContainerInternal
         T value = findPlugin(type);
         if (value == null) {
             throw new IllegalStateException(String.format("Could not find any convention object of type %s.",
-                    type.getSimpleName()));
+                type.getSimpleName()));
         }
         return value;
     }
@@ -99,8 +100,7 @@ public class DefaultConvention implements Convention, ExtensionContainerInternal
             return null;
         }
         if (values.size() > 1) {
-            throw new IllegalStateException(String.format("Found multiple convention objects of type %s.",
-                    type.getSimpleName()));
+            throw new IllegalStateException(String.format("Found multiple convention objects of type %s.", type.getSimpleName()));
         }
         return values.get(0);
     }
@@ -110,12 +110,12 @@ public class DefaultConvention implements Convention, ExtensionContainerInternal
         if (extension instanceof Class) {
             create(name, (Class<?>) extension);
         } else {
-            add((Class) extension.getClass(), name, extension);
+            add(extension.getClass(), name, extension);
         }
     }
 
     @Override
-    public <T> void add(Class<T> publicType, String name, T extension) {
+    public void add(Type publicType, String name, Object extension) {
         extensionsStorage.add(publicType, name, extension);
     }
 
@@ -125,7 +125,7 @@ public class DefaultConvention implements Convention, ExtensionContainerInternal
     }
 
     @Override
-    public <T> T create(Class<T> publicType, String name, Class<? extends T> instanceType, Object... constructionArguments) {
+    public <T> T create(Type publicType, String name, Class<T> instanceType, Object... constructionArguments) {
         T instance = getInstantiator().newInstance(instanceType, constructionArguments);
         add(publicType, name, instance);
         return instance;
@@ -137,7 +137,7 @@ public class DefaultConvention implements Convention, ExtensionContainerInternal
     }
 
     @Override
-    public Map<String, Class<?>> getSchema() {
+    public Map<String, Type> getSchema() {
         return extensionsStorage.getSchema();
     }
 
@@ -147,7 +147,17 @@ public class DefaultConvention implements Convention, ExtensionContainerInternal
     }
 
     @Override
+    public <T> T getByType(Type type) {
+        return extensionsStorage.getByType(type);
+    }
+
+    @Override
     public <T> T findByType(Class<T> type) {
+        return extensionsStorage.findByType(type);
+    }
+
+    @Override
+    public <T> T findByType(Type type) {
         return extensionsStorage.findByType(type);
     }
 
@@ -263,9 +273,9 @@ public class DefaultConvention implements Convention, ExtensionContainerInternal
         }
 
         public Object methodMissing(String name, Object args) {
-            return invokeMethod(name, (Object[])args);
+            return invokeMethod(name, (Object[]) args);
         }
-        
+
         @Override
         public boolean hasMethod(String name, Object... args) {
             if (extensionsStorage.isConfigureExtensionMethod(name, args)) {
