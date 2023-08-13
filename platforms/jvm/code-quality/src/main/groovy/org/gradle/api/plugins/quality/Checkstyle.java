@@ -39,7 +39,6 @@ import org.gradle.api.tasks.Optional;
 import org.gradle.api.tasks.PathSensitive;
 import org.gradle.api.tasks.PathSensitivity;
 import org.gradle.api.tasks.TaskAction;
-import org.gradle.util.internal.ClosureBackedAction;
 import org.gradle.workers.WorkQueue;
 
 import javax.annotation.Nullable;
@@ -106,7 +105,8 @@ public abstract class Checkstyle extends AbstractCodeQualityTask implements Repo
     @Override
     @SuppressWarnings("rawtypes")
     public CheckstyleReports reports(@DelegatesTo(value = CheckstyleReports.class, strategy = Closure.DELEGATE_FIRST) Closure closure) {
-        return reports(new ClosureBackedAction<>(closure));
+        getProject().configure(this.reports, closure);
+        return this.reports;
     }
 
     /**

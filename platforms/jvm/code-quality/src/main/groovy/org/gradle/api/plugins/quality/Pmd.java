@@ -42,7 +42,6 @@ import org.gradle.api.tasks.TaskAction;
 import org.gradle.internal.nativeintegration.console.ConsoleDetector;
 import org.gradle.internal.nativeintegration.console.ConsoleMetaData;
 import org.gradle.internal.nativeintegration.services.NativeServices;
-import org.gradle.util.internal.ClosureBackedAction;
 import org.gradle.workers.WorkQueue;
 
 import javax.annotation.Nullable;
@@ -136,7 +135,8 @@ public abstract class Pmd extends AbstractCodeQualityTask implements Reporting<P
     @Override
     @SuppressWarnings("rawtypes")
     public PmdReports reports(@DelegatesTo(value = PmdReports.class, strategy = Closure.DELEGATE_FIRST) Closure closure) {
-        return reports(new ClosureBackedAction<>(closure));
+        getProject().configure(this.reports, closure);
+        return this.reports;
     }
 
     /**

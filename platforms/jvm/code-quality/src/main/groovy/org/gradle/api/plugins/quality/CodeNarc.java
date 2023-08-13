@@ -32,7 +32,6 @@ import org.gradle.api.tasks.Nested;
 import org.gradle.api.tasks.PathSensitive;
 import org.gradle.api.tasks.PathSensitivity;
 import org.gradle.api.tasks.TaskAction;
-import org.gradle.util.internal.ClosureBackedAction;
 import org.gradle.workers.WorkQueue;
 
 import java.io.File;
@@ -118,7 +117,8 @@ public abstract class CodeNarc extends AbstractCodeQualityTask implements Report
      */
     @Override
     public CodeNarcReports reports(Closure closure) {
-        return reports(new ClosureBackedAction<CodeNarcReports>(closure));
+        getProject().configure(this.reports, closure);
+        return this.reports;
     }
 
     /**
